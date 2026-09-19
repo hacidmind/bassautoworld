@@ -302,11 +302,11 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
     page.getByRole("button", { name: "Save vehicle" }),
   ).toBeEnabled();
   await page
-    .getByLabel("Or add a photo from a URL")
-    .fill("https://example.com/vehicle.jpg");
-  await page.getByRole("button", { name: "Add photo from URL" }).click();
-  await expect(page.locator(".photo-tile")).toHaveCount(2);
-  await expect(page.getByLabel("Or add a photo from a URL")).toHaveValue("");
+    .getByLabel("Add photos from URLs")
+    .fill("https://example.com/vehicle.jpg\nhttps://example.com/second.jpg\nhttps://example.com/vehicle.jpg");
+  await page.getByRole("button", { name: "Add photos from URLs" }).click();
+  await expect(page.locator(".photo-tile")).toHaveCount(3);
+  await expect(page.getByLabel("Add photos from URLs")).toHaveValue("");
   await page.getByLabel("Vehicle description *").click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.getByRole("button", { name: "Bold", exact: true }).click();
@@ -330,7 +330,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   const created = await (await responsePromise).json();
   vehicleId = created.id;
   expect(created.slug).toMatch(/^2021-toyota-camry-/);
-  await expect(page.getByRole("status")).toContainText("now on the website");
+  await expect(page.locator(".notice[role=status]")).toContainText("now on the website");
   await page.goto("/admin/vehicles/" + vehicleId);
   await expect(page.getByLabel("Vehicle description *")).toHaveText(
     "A clean vehicle with a comfortable interior and full service history.",
@@ -341,7 +341,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
     .fill("Updated description after an inspection.");
   await page.getByRole("button", { name: "Quote", exact: true }).click();
   await page.getByRole("button", { name: "Save vehicle" }).click();
-  await expect(page.getByRole("status")).toContainText("now on the website");
+  await expect(page.locator(".notice[role=status]")).toContainText("now on the website");
   await page.goto("/cars");
   await expect(page.locator(".car-description")).toContainText(
     "Updated description after an inspection.",

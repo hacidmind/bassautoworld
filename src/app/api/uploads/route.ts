@@ -15,14 +15,17 @@ async function handlePost(req: Request) {
           (req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown"),
         3,
       );
-    const {
-      CLOUDINARY_CLOUD_NAME: cloudName,
-      CLOUDINARY_API_KEY: apiKey,
-      CLOUDINARY_API_SECRET: secret,
-    } = process.env;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+    const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+    const secret = process.env.CLOUDINARY_API_SECRET?.trim();
     if (!cloudName || !apiKey || !secret)
       return NextResponse.json(
-        { error: "Image uploads are not configured yet." },
+        {
+          error:
+            input.review === true
+              ? "Photo uploads are temporarily unavailable. Please try again later."
+              : "Cloudinary is not configured on this server. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET to the hosting environment, then redeploy (or restart your local server).",
+        },
         { status: 503 },
       );
     const params = {
