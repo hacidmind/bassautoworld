@@ -264,7 +264,9 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
       "A clean vehicle with a comfortable interior and full service history.",
     );
   await page.getByRole("button", { name: "Save vehicle" }).click();
-  await expect(page.locator(".vehicle-editor").getByRole("alert")).toContainText("Add at least one photo");
+  await expect(
+    page.locator(".vehicle-editor").getByRole("alert"),
+  ).toContainText("Add at least one photo");
   // Only the external media service is stubbed; saving and reading use the real local API/database.
   await page.route("**/api/uploads", (route) =>
     route.fulfill({
@@ -276,11 +278,13 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
       },
     }),
   );
+  let uploadCount = 0;
   await page.route("https://api.cloudinary.com/**", async (route) => {
+    uploadCount++;
     await new Promise((resolve) => setTimeout(resolve, 500));
     await route.fulfill({
       json: {
-        public_id: "qa-fixture",
+        public_id: "qa-fixture-" + uploadCount,
         secure_url: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
         width: 864,
         height: 576,
@@ -297,6 +301,17 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   await expect(
     page.getByRole("button", { name: "Save vehicle" }),
   ).toBeEnabled();
+  await page
+    .getByLabel("Or add a photo from a URL")
+    .fill("https://example.com/vehicle.jpg");
+  await page.getByRole("button", { name: "Add photo from URL" }).click();
+  await expect(page.locator(".photo-tile")).toHaveCount(2);
+  await expect(page.getByLabel("Or add a photo from a URL")).toHaveValue("");
+  await page.getByLabel("Vehicle description *").click();
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.getByRole("button", { name: "Bold", exact: true }).click();
+  await page.getByRole("button", { name: "Underline", exact: true }).click();
+  await page.getByLabel("Text style").selectOption("h2");
   await page.screenshot({
     path: "test-results/vehicle-editor-mobile.png",
     fullPage: true,
@@ -317,12 +332,14 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   expect(created.slug).toMatch(/^2021-toyota-camry-/);
   await expect(page.getByRole("status")).toContainText("now on the website");
   await page.goto("/admin/vehicles/" + vehicleId);
-  await expect(page.getByLabel("Vehicle description *")).toHaveValue(
+  await expect(page.getByLabel("Vehicle description *")).toHaveText(
     "A clean vehicle with a comfortable interior and full service history.",
   );
+  await expect(page.locator(".description-input h2 strong u")).toBeVisible();
   await page
     .getByLabel("Vehicle description *")
     .fill("Updated description after an inspection.");
+  await page.getByRole("button", { name: "Quote", exact: true }).click();
   await page.getByRole("button", { name: "Save vehicle" }).click();
   await expect(page.getByRole("status")).toContainText("now on the website");
   await page.goto("/cars");
@@ -331,6 +348,9 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   );
   await page.goto("/cars/" + created.slug);
   await expect(page.locator("h1")).toContainText("2021 Toyota Camry");
+  await expect(page.locator(".rich-description blockquote")).toContainText(
+    "Updated description after an inspection.",
+  );
   await expect(
     page.getByRole("link", { name: "Request inspection" }),
   ).toBeVisible();
@@ -358,4 +378,3 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   const response = await page.goto("/cars/" + created.slug);
   await expect(page.getByRole("heading", { name: /This page/ })).toBeVisible();
 });
-

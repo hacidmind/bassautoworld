@@ -321,7 +321,10 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
           setError("Add at least one photo before saving to the website.");
           return;
         }
-        if (!String(values.description || "").trim()) { setError("Write a vehicle description before saving."); return; }
+        if (!String(values.description || "").trim()) {
+          setError("Write a vehicle description before saving.");
+          return;
+        }
         try {
           const result = await save(
             "vehicles",
@@ -396,11 +399,17 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
                 ))}
               </select>
             </label>
-            <DescriptionEditor html={initial?.descriptionHtml} text={initial?.description || ""} disabled={isSubmitting} onChange={(html, text) => {
-              setValue("descriptionHtml", html, { shouldDirty: true });
-              setValue("description", text, { shouldDirty: true });
-              setSaved(null);
-            }} />       </div>
+            <DescriptionEditor
+              html={initial?.descriptionHtml}
+              text={initial?.description || ""}
+              disabled={isSubmitting}
+              onChange={(html, text) => {
+                setValue("descriptionHtml", html, { shouldDirty: true });
+                setValue("description", text, { shouldDirty: true });
+                setSaved(null);
+              }}
+            />{" "}
+          </div>
         </section>
         <details className="editor-section">
           <summary>More vehicle details (optional)</summary>

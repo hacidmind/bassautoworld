@@ -85,7 +85,17 @@ export default async function Detail({
       <div className="detail-grid section">
         <div>
           <h2>A closer look.</h2>
-          <div className="rich-description">{c.descriptionHtml ? <div dangerouslySetInnerHTML={{ __html: cleanDescription(String(c.descriptionHtml)) }} /> : <p style={{ whiteSpace: "pre-line" }}>{c.description}</p>}</div>
+          <div className="rich-description">
+            {c.descriptionHtml ? (
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: cleanDescription(String(c.descriptionHtml)),
+                }}
+              />
+            ) : (
+              <p style={{ whiteSpace: "pre-line" }}>{c.description}</p>
+            )}
+          </div>
           <h3>Specifications</h3>
           <dl className="specs">
             {[

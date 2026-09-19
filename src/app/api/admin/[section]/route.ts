@@ -54,7 +54,11 @@ async function mutate(
     let record;
     if (section === "vehicles") {
       if (typeof input.descriptionHtml === "string") {
-        if (input.descriptionHtml.length > 60000) return NextResponse.json({ error: "Description is too long." }, { status: 400 });
+        if (input.descriptionHtml.length > 60000)
+          return NextResponse.json(
+            { error: "Description is too long." },
+            { status: 400 },
+          );
         input.descriptionHtml = cleanDescription(input.descriptionHtml);
         input.description = descriptionText(input.descriptionHtml);
       } else if (typeof input.description === "string") {

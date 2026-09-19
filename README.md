@@ -84,3 +84,9 @@ From Admin, choose **Add a vehicle**, select photos from the phone or computer, 
 Use **Manage vehicles ? Edit vehicle** to update text, add/remove photos or change the cover. Save applies changes to the public listing. Uncheck **Show on the website** to keep a draft. Archived vehicles remain hidden until restored. The first two lines of the description appear on public vehicle cards.
 
 Photos upload automatically within Admin using the existing Cloudinary integration; the owner never needs to upload files on another website or copy image URLs. One-time developer setup requires `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` in `.env.local` and in the hosting environment. Restart the app after configuring them. Without these credentials, photo uploads report that storage is not configured. The browser integration test stubs Cloudinary, while saving and reading listings use the isolated local database.
+
+### URL photos and formatted descriptions
+
+In the vehicle editor, paste a direct public HTTP/HTTPS image link into **Or add a photo from a URL**, then choose **Add photo from URL**. Cloudinary imports a copy, which can be made the cover or reordered alongside device uploads. Links to web pages, private files or unsupported formats will show an error without removing existing photos.
+
+The description editor supports paragraph, heading, sub-heading, bold, italic, underline, quote, bullet/numbered lists, clear formatting and undo/redo. Select text before applying inline formatting. Save preserves formatting on the vehicle detail page; cards and metadata use plain text. Existing plain-text descriptions continue to work. Formatted HTML is filtered on the server to the supported elements with no embedded scripts, media or arbitrary attributes.
