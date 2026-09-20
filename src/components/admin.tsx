@@ -343,7 +343,7 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
             slug: result.slug,
             published: values.published && !values.archived,
           });
-          router.refresh();
+          router.replace("/admin");
         } catch (e) {
           setError(
             e instanceof Error

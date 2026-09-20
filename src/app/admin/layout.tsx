@@ -19,12 +19,13 @@ export default async function AdminLayout({
   }
   return (
     <section className="container section">
-      <div className="section-head">
+      <div className="section-head admin-header">
         <div>
           <p className="eyebrow">BASSAUTOWORLD / ADMIN</p>
           <h2>Your business, in view.</h2>
         </div>
         <form
+          className="admin-signout"
           action={async () => {
             "use server";
             await signOut({ redirectTo: "/login" });

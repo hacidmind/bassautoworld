@@ -765,6 +765,15 @@ textarea {
 .admin-nav a {
   font-size: 13px;
 }
+.admin-header {
+  align-items: flex-start;
+}
+.admin-signout {
+  flex: none;
+}
+.admin-signout .button {
+  white-space: nowrap;
+}
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1062,6 +1071,17 @@ summary {
   }
   .section-head p {
     font-size: 13px;
+  }
+  .admin-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .admin-header h2 {
+    margin-bottom: 0;
+  }
+  .admin-signout .button {
+    padding: 12px 14px;
   }
   .empty-inventory {
     grid-template-columns: 1fr;
