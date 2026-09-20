@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { canReachMongo, db } from "./db";
 import { Vehicle, SiteSetting, Review } from "./models";
 const businessDefaults = {
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "2347060558970",
@@ -62,38 +62,56 @@ export const services = [
 ];
 export async function cars(): Promise<Car[]> {
   if (!process.env.MONGODB_URI) return [];
-  await db();
-  return JSON.parse(
-    JSON.stringify(
-      await Vehicle.find({ published: true, archived: false })
-        .sort({ createdAt: -1 })
-        .limit(500)
-        .lean(),
-    ),
-  );
+  if (!(await canReachMongo(process.env.MONGODB_URI))) return [];
+  try {
+    await db();
+    return JSON.parse(
+      JSON.stringify(
+        await Vehicle.find({ published: true, archived: false })
+          .sort({ createdAt: -1 })
+          .limit(500)
+          .lean(),
+      ),
+    );
+  } catch (error) {
+    console.error("Failed to load published vehicles:", error);
+    return [];
+  }
 }
 export async function settings(): Promise<Record<string, string>> {
   if (!process.env.MONGODB_URI) return businessDefaults;
-  await db();
-  const s = await SiteSetting.findOne({ key: "business" }).lean();
-  const values = (s?.value || {}) as Record<string, string>;
-  return {
-    ...businessDefaults,
-    ...values,
-    whatsapp: values.whatsapp || businessDefaults.whatsapp,
-  };
+  if (!(await canReachMongo(process.env.MONGODB_URI))) return businessDefaults;
+  try {
+    await db();
+    const s = await SiteSetting.findOne({ key: "business" }).lean();
+    const values = (s?.value || {}) as Record<string, string>;
+    return {
+      ...businessDefaults,
+      ...values,
+      whatsapp: values.whatsapp || businessDefaults.whatsapp,
+    };
+  } catch (error) {
+    console.error("Failed to load site settings:", error);
+    return businessDefaults;
+  }
 }
 export async function reviews() {
   if (!process.env.MONGODB_URI) return [];
-  await db();
-  return JSON.parse(
-    JSON.stringify(
-      await Review.find({ status: "APPROVED" })
-        .sort({ featured: -1, createdAt: -1 })
-        .limit(50)
-        .lean(),
-    ),
-  );
+  if (!(await canReachMongo(process.env.MONGODB_URI))) return [];
+  try {
+    await db();
+    return JSON.parse(
+      JSON.stringify(
+        await Review.find({ status: "APPROVED" })
+          .sort({ featured: -1, createdAt: -1 })
+          .limit(50)
+          .lean(),
+      ),
+    );
+  } catch (error) {
+    console.error("Failed to load approved reviews:", error);
+    return [];
+  }
 }
 export function money(n: number, currency = "NGN") {
   return new Intl.NumberFormat("en-NG", {

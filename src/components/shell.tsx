@@ -2,8 +2,38 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, ArrowUpRight, MessageCircle, ArrowRight } from "lucide-react";
+import {
+  Menu,
+  X,
+  ArrowUpRight,
+  MessageCircle,
+  ArrowRight,
+  Moon,
+  Sun,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
+function ThemeToggle() {
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("baw-theme", next);
+    } catch {}
+  };
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      aria-label="Change color theme"
+      title="Change color theme"
+      onClick={toggleTheme}
+    >
+      <Moon className="theme-moon" size={18} aria-hidden="true" />
+      <Sun className="theme-sun" size={18} aria-hidden="true" />
+    </button>
+  );
+}
 export function Brand({ logoUrl }: { logoUrl?: string } = {}) {
   if (logoUrl)
     return (
@@ -58,6 +88,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         <Link className="button nav-cta" href="/contact">
           Let’s talk <ArrowUpRight size={16} />
         </Link>
+        <ThemeToggle />
         <button
           className="menu"
           aria-label={open ? "Close menu" : "Open menu"}

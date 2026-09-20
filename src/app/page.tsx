@@ -37,32 +37,35 @@ export default async function Home() {
         <div className="container hero-content">
           <div className="hero-copy">
             <p className="eyebrow">
-              <span /> YOUR VEHICLE PARTNER. WORLDWIDE.
+              <span /> SOURCED GLOBALLY. DELIVERED WITH CARE.
             </p>
             <h1>
-              Drive what
+              Beyond borders.
               <br />
-              you <em>want.</em>
+              <em>Behind the wheel.</em>
             </h1>
-            <h2>We handle the journey.</h2>
             <p className="hero-description">
-              From your first search to your final destination.
-              <br />
-              Buy, source, import, and deliver — all with one partner.
+              We source, ship, clear, and deliver your next vehicle—so you can
+              focus on choosing the one.
             </p>
             <div className="actions">
               <Link className="button" href="/cars">
-                Browse cars <ArrowUpRight size={19} />
+                Explore vehicles <ArrowUpRight size={19} />
               </Link>
               <Link className="button glass" href="/preorder">
-                Preorder a vehicle <ArrowUpRight size={19} />
+                Source a vehicle <ArrowUpRight size={19} />
               </Link>
+            </div>
+            <div className="hero-assurance" aria-label="Services at a glance">
+              <span>Global sourcing</span>
+              <span>Shipping &amp; clearing</span>
+              <span>Delivery coordination</span>
             </div>
           </div>
           <div className="hero-foot">
-            <span>BUILT AROUND YOUR NEXT MOVE.</span>
+            <span>ONE PARTNER. EVERY MILE.</span>
             <span>
-              EXPLORE THE POSSIBILITIES <span className="down">↓</span>
+              DISCOVER WHAT’S POSSIBLE <span className="down">↓</span>
             </span>
           </div>
         </div>

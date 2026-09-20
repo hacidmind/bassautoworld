@@ -243,7 +243,8 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   await page.route("**/_next/image?url=https*", async (route) =>
     route.fulfill({
       contentType: "image/jpeg",
-      body: await readFile("public/images/hero.jpg"),
+      body: await readFile(route.request().url().includes("qa-fixture-2")
+        ? "public/images/automotive.jpg" : "public/images/hero.jpg"),
     }),
   );
   await login(page);
@@ -280,12 +281,12 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   );
   let uploadCount = 0;
   await page.route("https://api.cloudinary.com/**", async (route) => {
-    uploadCount++;
+    const uploadId = ++uploadCount;
     await new Promise((resolve) => setTimeout(resolve, 500));
     await route.fulfill({
       json: {
-        public_id: "qa-fixture-" + uploadCount,
-        secure_url: "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+        public_id: "qa-fixture-" + uploadId,
+        secure_url: `https://res.cloudinary.com/demo/image/upload/qa-fixture-${uploadId}.jpg`,
         width: 864,
         height: 576,
         format: "jpg",
@@ -306,6 +307,9 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
     .fill("https://example.com/vehicle.jpg\nhttps://example.com/second.jpg\nhttps://example.com/vehicle.jpg");
   await page.getByRole("button", { name: "Add photos from URLs" }).click();
   await expect(page.locator(".photo-tile")).toHaveCount(3);
+  await expect.poll(() => page.locator(".photo-tile img").evaluateAll(
+    (images) => images.every((image) => (image as HTMLImageElement).naturalWidth > 0),
+  )).toBe(true);
   await expect(page.getByLabel("Add photos from URLs")).toHaveValue("");
   await page.getByLabel("Vehicle description *").click();
   await page.keyboard.press("ControlOrMeta+a");
@@ -330,8 +334,10 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   const created = await (await responsePromise).json();
   vehicleId = created.id;
   expect(created.slug).toMatch(/^2021-toyota-camry-/);
-  await expect(page.locator(".notice[role=status]")).toContainText("now on the website");
+  await expect(page).toHaveURL(/\/admin$/);
   await page.goto("/admin/vehicles/" + vehicleId);
+  await expect(page.locator(".photo-tile img").nth(1)).toHaveAttribute("src", /qa-fixture-2/);
+  await expect(page.locator(".photo-tile img").nth(2)).toHaveAttribute("src", /qa-fixture-3/);
   await expect(page.getByLabel("Vehicle description *")).toHaveText(
     "A clean vehicle with a comfortable interior and full service history.",
   );
@@ -341,7 +347,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
     .fill("Updated description after an inspection.");
   await page.getByRole("button", { name: "Quote", exact: true }).click();
   await page.getByRole("button", { name: "Save vehicle" }).click();
-  await expect(page.locator(".notice[role=status]")).toContainText("now on the website");
+  await expect(page).toHaveURL(/\/admin$/);
   await page.goto("/cars");
   await expect(page.locator(".car-description")).toContainText(
     "Updated description after an inspection.",
@@ -354,8 +360,28 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   await expect(
     page.getByRole("link", { name: "Request inspection" }),
   ).toBeVisible();
+  await expect(page.locator(".gallery-thumbs button")).toHaveCount(3);
+  await page.getByRole("button", { name: "Next photo" }).click();
+  await expect(page.locator(".gallery-count")).toHaveText("2 / 3");
+  await expect(page.locator(".gallery-main img")).toHaveAttribute("src", /qa-fixture-2/);
+  await expect.poll(() => page.locator(".gallery-main img").evaluate(
+    (image) => (image as HTMLImageElement).naturalWidth,
+  )).toBeGreaterThan(0);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect.poll(() => page.locator(".gallery-main img").evaluate(
+      (image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0,
+    )).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const stage = await page.locator(".gallery-stage").boundingBox();
+    const thumbnails = await page.locator(".gallery-thumbs").boundingBox();
+    expect(thumbnails!.y).toBeGreaterThanOrEqual(stage!.y + stage!.height);
+    expect(Math.abs(thumbnails!.x - stage!.x)).toBeLessThan(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `test-results/gallery-${width}.png` });
+  }
   await page
-    .getByRole("button", { name: "Open full-screen vehicle photo" })
+    .getByRole("button", { name: "Open photo 2 of 3 full screen" })
     .click();
   await expect(page.locator("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
@@ -377,4 +403,15 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   });
   const response = await page.goto("/cars/" + created.slug);
   await expect(page.getByRole("heading", { name: /This page/ })).toBeVisible();
+  await page.goto("/admin");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.locator(".admin-toolbar").getByRole("button", { name: "Sign out" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `test-results/admin-signout-${width}.png` });
+  }
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login$/);
 });

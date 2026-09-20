@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, requireAdmin, signOut } from "@/auth";
 import { redirect } from "next/navigation";
+import { LogOut } from "lucide-react";
 export const metadata = {
   title: "Administration",
   robots: { index: false, follow: false },
@@ -24,6 +25,24 @@ export default async function AdminLayout({
           <p className="eyebrow">BASSAUTOWORLD / ADMIN</p>
           <h2>Your business, in view.</h2>
         </div>
+      </div>
+      <div className="admin-toolbar">
+        <nav className="admin-nav" aria-label="Administration">
+          {[
+            ["", "Overview"],
+            ["vehicles", "Vehicles"],
+            ["leads", "Leads"],
+            ["inspections", "Inspections"],
+            ["preorders", "Preorders"],
+            ["service-requests", "Services"],
+            ["reviews", "Reviews"],
+            ["settings", "Settings"],
+          ].map(([path, title]) => (
+            <Link key={path} href={"/admin" + (path ? "/" + path : "")}>
+              {title}
+            </Link>
+          ))}
+        </nav>
         <form
           className="admin-signout"
           action={async () => {
@@ -31,25 +50,11 @@ export default async function AdminLayout({
             await signOut({ redirectTo: "/login" });
           }}
         >
-          <button className="button outline">Sign out</button>
+          <button type="submit" className="button outline">
+            <LogOut size={16} aria-hidden="true" /> Sign out
+          </button>
         </form>
       </div>
-      <nav className="admin-nav" aria-label="Administration">
-        {[
-          ["", "Overview"],
-          ["vehicles", "Vehicles"],
-          ["leads", "Leads"],
-          ["inspections", "Inspections"],
-          ["preorders", "Preorders"],
-          ["service-requests", "Services"],
-          ["reviews", "Reviews"],
-          ["settings", "Settings"],
-        ].map(([path, title]) => (
-          <Link key={path} href={"/admin" + (path ? "/" + path : "")}>
-            {title}
-          </Link>
-        ))}
-      </nav>
       {children}
     </section>
   );

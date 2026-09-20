@@ -296,33 +296,100 @@ export function Gallery({ images }: { images: Car["images"] }) {
   const [index, setIndex] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const start = useRef(0);
+  const swiped = useRef(false);
+  const thumbnails = useRef<(HTMLButtonElement | null)[]>([]);
   function move(d: number) {
     setIndex((i) => (i + d + images.length) % images.length);
   }
+  useEffect(() => {
+    const thumbnail = thumbnails.current[index];
+    const strip = thumbnail?.parentElement;
+    if (!thumbnail || !strip) return;
+    strip.scrollTo({
+      left: thumbnail.offsetLeft - strip.clientWidth / 2 + thumbnail.clientWidth / 2,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  }, [index]);
   if (!images.length)
     return <div className="empty">Vehicle photos coming soon.</div>;
   return (
-    <>
-      <button
-        className="gallery-main"
-        aria-label="Open full-screen vehicle photo"
-        onClick={() => dialog.current?.showModal()}
+    <div className="vehicle-gallery" role="region" aria-label="Vehicle photos">
+      <div
+        className="gallery-stage"
+        onTouchStart={(e) => {
+          start.current = e.touches[0].clientX;
+          swiped.current = false;
+        }}
+        onTouchEnd={(e) => {
+          const delta = e.changedTouches[0].clientX - start.current;
+          if (Math.abs(delta) > 40 && images.length > 1) {
+            swiped.current = true;
+            move(delta > 0 ? -1 : 1);
+          }
+        }}
       >
-        <Image
-          src={images[index].secureUrl}
-          alt={images[index].alt || "Vehicle photograph"}
-          fill
-          priority
-          sizes="(max-width:760px) 90vw, 55vw"
-        />
-      </button>
+        <button
+          type="button"
+          className="gallery-main"
+          aria-label={`Open photo ${index + 1} of ${images.length} full screen`}
+          onClick={() => {
+            if (swiped.current) {
+              swiped.current = false;
+              return;
+            }
+            dialog.current?.showModal();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft" && images.length > 1) move(-1);
+            if (e.key === "ArrowRight" && images.length > 1) move(1);
+          }}
+        >
+          <Image
+            src={images[index].secureUrl}
+            alt={images[index].alt || "Vehicle photograph"}
+            fill
+            priority
+            sizes="(max-width:760px) 90vw, 55vw"
+          />
+        </button>
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              className="gallery-arrow previous"
+              aria-label="Previous photo"
+              onClick={() => move(-1)}
+            >
+              <ChevronLeft aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="gallery-arrow next"
+              aria-label="Next photo"
+              onClick={() => move(1)}
+            >
+              <ChevronRight aria-hidden="true" />
+            </button>
+            <span className="gallery-count" aria-live="polite">
+              {index + 1} / {images.length}
+            </span>
+          </>
+        )}
+      </div>
       <div className="gallery-thumbs">
         {images.map((im, i) => (
           <button
+            type="button"
             key={im.publicId || i}
+            ref={(node) => {
+              thumbnails.current[i] = node;
+            }}
             onClick={() => setIndex(i)}
             className={i === index ? "selected" : ""}
             aria-label={`View photo ${i + 1}`}
+            aria-current={i === index ? "true" : undefined}
           >
             <Image
               src={im.secureUrl}
@@ -342,16 +409,17 @@ export function Gallery({ images }: { images: Car["images"] }) {
         }}
       >
         <div className="lightbox-controls">
-          <button aria-label="Previous image" onClick={() => move(-1)}>
+          <button type="button" aria-label="Previous image" onClick={() => move(-1)}>
             <ChevronLeft />
           </button>
           <span>
             {index + 1} / {images.length}
           </span>
-          <button aria-label="Next image" onClick={() => move(1)}>
+          <button type="button" aria-label="Next image" onClick={() => move(1)}>
             <ChevronRight />
           </button>
           <button
+            type="button"
             aria-label="Close viewer"
             onClick={() => dialog.current?.close()}
           >
@@ -376,6 +444,6 @@ export function Gallery({ images }: { images: Car["images"] }) {
           />
         </div>
       </dialog>
-    </>
+    </div>
   );
 }
