@@ -45,7 +45,8 @@ export function Uploads({ value, onChange, review = false, onBusyChange }: {
       setProgress((sources.length - failures.length) + " photo(s) added" + (failures.length ? "; " + failures.length + " failed. Successful photos are kept." : ". Ready to save."));
     } finally { running.current = false; setBusy(false); onBusyChange?.(false); }
   }
-  return <div className="wide photo-upload" aria-busy={busy}>
+  return (
+    <div className="wide photo-upload" aria-busy={busy}>
     <label className="field">{review ? "Add a photo (optional)" : "Choose vehicle photos"}
       <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple={!review} disabled={busy}
         onChange={async e => { const input = e.currentTarget; const files = Array.from(input.files || []); await upload(files); input.value = ""; }} />
