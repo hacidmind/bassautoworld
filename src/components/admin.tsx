@@ -266,6 +266,7 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
   const router = useRouter();
   const [images, setImages] = useState<UploadImage[]>(initial?.images || []);
   const [uploading, setUploading] = useState(false);
+  const [pendingUrls, setPendingUrls] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<{
     slug: string;
@@ -317,6 +318,12 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
         if (uploading) return;
         setError("");
         setSaved(null);
+        if (pendingUrls) {
+          setError(
+            "Some photo URLs have not been uploaded. Click Add photos from URLs and wait for the previews, or clear the URLs before saving.",
+          );
+          return;
+        }
         if (values.published && !images.length) {
           setError("Add at least one photo before saving to the website.");
           return;
@@ -344,6 +351,7 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
             published: values.published && !values.archived,
           });
           router.replace("/admin");
+          router.refresh();
         } catch (e) {
           setError(
             e instanceof Error
@@ -380,6 +388,7 @@ export function VehicleEditor({ initial }: { initial?: Row }) {
               setSaved(null);
             }}
             onBusyChange={setUploading}
+            onPendingUrlsChange={setPendingUrls}
           />
         </section>
         <section className="editor-section">

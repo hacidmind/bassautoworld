@@ -25,6 +25,17 @@ export default async function AdminLayout({
           <p className="eyebrow">BASSAUTOWORLD / ADMIN</p>
           <h2>Your business, in view.</h2>
         </div>
+        <form
+          className="admin-signout"
+          action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/login" });
+          }}
+        >
+          <button type="submit" className="button outline">
+            <LogOut size={16} aria-hidden="true" /> Sign out
+          </button>
+        </form>
       </div>
       <div className="admin-toolbar">
         <nav className="admin-nav" aria-label="Administration">
@@ -43,17 +54,6 @@ export default async function AdminLayout({
             </Link>
           ))}
         </nav>
-        <form
-          className="admin-signout"
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
-        >
-          <button type="submit" className="button outline">
-            <LogOut size={16} aria-hidden="true" /> Sign out
-          </button>
-        </form>
       </div>
       {children}
     </section>

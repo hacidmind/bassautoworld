@@ -5,12 +5,11 @@ import { settings } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/next";
 import { Tracking } from "@/components/tracking";
 import Script from "next/script";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-  ),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "BassAutoWorld | Your vehicle partner. Worldwide.",
     template: "%s | BassAutoWorld",

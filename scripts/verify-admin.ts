@@ -1,12 +1,14 @@
 import nextEnv from "@next/env";
 import mongoose from "mongoose";
 import { User } from "../src/lib/models";
+import { configureMongoDns } from "../src/lib/mongo-dns";
 nextEnv.loadEnvConfig(process.cwd());
 async function main() {
   const { MONGODB_URI, ADMIN_EMAIL } = process.env;
   if (!MONGODB_URI || !ADMIN_EMAIL)
     throw new Error("Set MONGODB_URI and ADMIN_EMAIL in .env.local.");
-  await mongoose.connect(MONGODB_URI);
+  configureMongoDns();
+  await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000, autoIndex: false, autoCreate: false });
   const email = ADMIN_EMAIL.toLowerCase();
   const user = await User.findOne({ email }).lean();
   if (!user) {
@@ -14,12 +16,12 @@ async function main() {
     process.exitCode = 1;
   } else {
     console.log("User found:");
-    console.log({ id: String(user._id), email: user.email, role: user.role, active: user.active, passwordHash: user.passwordHash });
+    console.log({ role: user.role, active: user.active });
   }
 }
 main()
   .catch((e) => {
-    console.error(e.message);
+    console.error("Administrator verification failed:", e.name, e.code || "");
     process.exitCode = 1;
   })
   .finally(() => mongoose.disconnect());

@@ -2,6 +2,7 @@ import nextEnv from "@next/env";
 import mongoose from "mongoose";
 import { hash } from "bcryptjs";
 import { User } from "../src/lib/models";
+import { configureMongoDns } from "../src/lib/mongo-dns";
 nextEnv.loadEnvConfig(process.cwd());
 async function main() {
   const { MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
@@ -14,6 +15,7 @@ async function main() {
     throw new Error(
       "Set MONGODB_URI, ADMIN_EMAIL and ADMIN_PASSWORD (at least 14 characters) in .env.local.",
     );
+  configureMongoDns();
   await mongoose.connect(MONGODB_URI);
   const email = ADMIN_EMAIL.toLowerCase();
   if (await User.exists({ email }))

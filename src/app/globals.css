@@ -919,9 +919,12 @@ textarea {
 }
 .admin-header {
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 .admin-signout {
   flex: none;
+  margin-left: auto;
 }
 .admin-signout .button {
   white-space: nowrap;
@@ -1251,7 +1254,7 @@ summary {
     gap: 16px 20px;
   }
   .admin-signout {
-    align-self: flex-end;
+    align-self: flex-start;
   }
   .empty-inventory {
     grid-template-columns: 1fr;

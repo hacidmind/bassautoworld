@@ -25,7 +25,14 @@ Cloudinary uploads require live credentials to verify. Removing a saved vehicle 
 
 `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are reserved configuration entries from the requested template; Turnstile is not enabled. Public requests currently use a honeypot, server-side Zod validation and a database-backed rate limiter. Review and upload endpoints have separate limits. Never expose the database URI, Auth secret or Cloudinary API secret as `NEXT_PUBLIC_` variables.
 
+### MongoDB DNS troubleshooting
+
+If MongoDB reports `querySrv ECONNREFUSED` while using `mongodb+srv://`, the network's DNS resolver may be refusing SRV queries. Set `MONGODB_DNS_SERVERS=1.1.1.1,8.8.8.8` in `.env.local` and restart the dev server. This optional setting changes DNS resolution within the Node.js process, including other libraries using Node's DNS resolver; it does not change Windows settings. Leave it unset on deployments with working DNS or private database DNS.
+
+Run `npx tsx scripts/check-database.ts` to test the connection and `npm run admin:verify` to check that the configured administrator exists and is active. These checks do not change database records or print passwords. MongoDB's driver handles SRV discovery; a failed address lookup of the seed hostname alone does not mean the cluster is unreachable.
+
 ## Routes and workflows
+
 
 - Public: `/`, `/cars`, `/cars/[slug]`, `/preorder`, `/inspection`, `/services`, `/services/importation`, `/services/auction-sourcing`, `/services/shipping`, `/services/clearing-forwarding`, `/services/trucking`, `/reviews`, `/about`, `/contact`.
 - Admin: `/admin`, `/admin/vehicles`, `/admin/vehicles/new`, `/admin/vehicles/[id]`, `/admin/leads`, `/admin/inspections`, `/admin/preorders`, `/admin/service-requests`, `/admin/reviews`, `/admin/settings`.
@@ -67,7 +74,11 @@ QA uses a disposable local MongoDB replica set on port 27028 and Next.js on port
 3. Enable Vercel Web Analytics. Optionally set `NEXT_PUBLIC_GA_ID` and `NEXT_PUBLIC_META_PIXEL_ID` to enable the corresponding marketing scripts. Apply your business's consent configuration before enabling marketing trackers where required.
 4. Deploy a preview, create the admin, upload a vehicle from mobile, submit each request type, moderate a review and check the saved records before promoting to production. Verify Cloudinary signing and deletion with the live account.
 
-The application is not deployed by this workspace setup. Atlas, Cloudinary and a Vercel project must be configured before launch. Confirm the logo, public contact details, real inventory, image rights, and any published trust statements with the business.
+The GitHub repository is connected to the existing `bassautoworld` Vercel project; pushes to `main` trigger production deployment. Configure `MONGODB_URI`, `AUTH_SECRET`, and the three Cloudinary credentials in the Production environment. Set `NEXT_PUBLIC_SITE_URL` to the public HTTPS domain; Vercel's production domain is used as a fallback if the setting still points to localhost. Keep `ADMIN_PASSWORD` and the local DNS override out of Vercel. The admin bootstrap/reset scripts are local maintenance tools.
+
+GitHub Actions runs type checking, unit tests, a production dependency audit and a build. The browser suite uses the isolated QA database described above. Public password-recovery endpoints are disabled until an email delivery flow is implemented; use `npm run admin:reset-password` for authorized recovery. Reset links and password hashes must never be logged.
+
+Confirm the logo, public contact details, real inventory, image rights, and any published trust statements with the business. To roll back a release, promote the previous known-good deployment from the Vercel dashboard.
 
 ## Image credits
 
@@ -87,6 +98,6 @@ Photos upload automatically within Admin using the existing Cloudinary integrati
 
 ### URL photos and formatted descriptions
 
-In the vehicle editor, paste a direct public HTTP/HTTPS image link into **Or add a photo from a URL**, then choose **Add photo from URL**. Cloudinary imports a copy, which can be made the cover or reordered alongside device uploads. Links to web pages, private files or unsupported formats will show an error without removing existing photos.
+In the vehicle editor, paste direct public HTTP/HTTPS image links into **Add photos from URLs**, one per line, then choose **Add photos from URLs**. Wait for each photo preview, then click **Save vehicle** to update the website gallery. Pasted URLs that have not been imported must be uploaded or cleared before saving. Cloudinary imports copies, which can be made the cover or reordered alongside device uploads. JPG, PNG, WebP, HEIC, HEIF and AVIF photos are supported for both device uploads and URL imports. Links to web pages, private files or unsupported formats will show an error without removing existing photos.
 
 The description editor supports paragraph, heading, sub-heading, bold, italic, underline, quote, bullet/numbered lists, clear formatting and undo/redo. Select text before applying inline formatting. Save preserves formatting on the vehicle detail page; cards and metadata use plain text. Existing plain-text descriptions continue to work. Formatted HTML is filtered on the server to the supported elements with no embedded scripts, media or arbitrary attributes.

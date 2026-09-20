@@ -1,4 +1,5 @@
 import { imageSchema } from "./validation";
+import { imageFormatLabel } from "./image-formats";
 
 export function parseImageUrls(text: string) {
   return [
@@ -29,10 +30,10 @@ export async function uploadPhoto(source: File | string, review: boolean) {
       );
   } else {
     if (
-      !/^image\/(jpeg|png|webp|heic|heif)$/.test(source.type) &&
-      !/\.(jpe?g|png|webp|heic|heif)$/i.test(source.name)
+      !/^image\/(jpeg|png|webp|heic|heif|avif)$/.test(source.type) &&
+      !/\.(jpe?g|png|webp|heic|heif|avif)$/i.test(source.name)
     )
-      throw new Error("Choose a JPG, PNG, WebP or HEIC photo.");
+      throw new Error(`Choose a ${imageFormatLabel} photo.`);
     if (source.size > 15 * 1024 * 1024)
       throw new Error("Photo exceeds 15 MB. Choose a smaller image.");
   }

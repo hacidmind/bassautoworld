@@ -2,6 +2,7 @@ import { withRequestLog } from "@/lib/logging";
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { randomUUID } from "crypto";
+import { allowedImageFormats } from "@/lib/image-formats";
 import { requireAdmin } from "@/auth";
 import { body, rateLimit, sameOrigin } from "@/lib/security";
 async function handlePost(req: Request) {
@@ -32,7 +33,7 @@ async function handlePost(req: Request) {
       timestamp: Math.floor(Date.now() / 1000),
       public_id: `bassautoworld/${input.review ? "reviews" : "vehicles"}/${randomUUID()}`,
       overwrite: false,
-      allowed_formats: "jpg,jpeg,png,webp,heic,heif",
+      allowed_formats: allowedImageFormats,
     };
     return NextResponse.json({
       cloudName,

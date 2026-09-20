@@ -1,4 +1,4 @@
-import { canReachMongo, db } from "./db";
+import { db } from "./db";
 import { Vehicle, SiteSetting, Review } from "./models";
 const businessDefaults = {
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "2347060558970",
@@ -62,7 +62,6 @@ export const services = [
 ];
 export async function cars(): Promise<Car[]> {
   if (!process.env.MONGODB_URI) return [];
-  if (!(await canReachMongo(process.env.MONGODB_URI))) return [];
   try {
     await db();
     return JSON.parse(
@@ -80,7 +79,6 @@ export async function cars(): Promise<Car[]> {
 }
 export async function settings(): Promise<Record<string, string>> {
   if (!process.env.MONGODB_URI) return businessDefaults;
-  if (!(await canReachMongo(process.env.MONGODB_URI))) return businessDefaults;
   try {
     await db();
     const s = await SiteSetting.findOne({ key: "business" }).lean();
@@ -97,7 +95,6 @@ export async function settings(): Promise<Record<string, string>> {
 }
 export async function reviews() {
   if (!process.env.MONGODB_URI) return [];
-  if (!(await canReachMongo(process.env.MONGODB_URI))) return [];
   try {
     await db();
     return JSON.parse(

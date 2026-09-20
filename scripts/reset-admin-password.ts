@@ -2,6 +2,7 @@ import nextEnv from "@next/env";
 import mongoose from "mongoose";
 import { hash } from "bcryptjs";
 import { User } from "../src/lib/models";
+import { configureMongoDns } from "../src/lib/mongo-dns";
 
 nextEnv.loadEnvConfig(process.cwd());
 
@@ -9,6 +10,7 @@ async function main() {
   const { MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
   if (!MONGODB_URI || !ADMIN_EMAIL || !ADMIN_PASSWORD || ADMIN_PASSWORD.length < 14)
     throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD (at least 14 characters) in .env.local, alongside MONGODB_URI.");
+  configureMongoDns();
   await mongoose.connect(MONGODB_URI);
   const user = await User.findOne({ email: ADMIN_EMAIL.trim().toLowerCase(), active: true, role: { $in: ["ADMIN", "SUPER_ADMIN"] } });
   if (!user) throw new Error("No active administrator matches ADMIN_EMAIL; no changes made.");

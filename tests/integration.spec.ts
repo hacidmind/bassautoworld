@@ -32,7 +32,7 @@ test("public pages, desktop/mobile navigation and images", async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Drive whatyou want.",
+      "Beyond borders.Behind the wheel.",
     );
     await expect
       .poll(() =>
@@ -304,7 +304,9 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   ).toBeEnabled();
   await page
     .getByLabel("Add photos from URLs")
-    .fill("https://example.com/vehicle.jpg\nhttps://example.com/second.jpg\nhttps://example.com/vehicle.jpg");
+    .fill("https://example.com/vehicle.avif\nhttps://example.com/second.jpg\nhttps://example.com/vehicle.avif");
+  await page.getByRole("button", { name: "Save vehicle" }).click();
+  await expect(page.locator(".vehicle-editor").getByRole("alert")).toContainText("Some photo URLs have not been uploaded");
   await page.getByRole("button", { name: "Add photos from URLs" }).click();
   await expect(page.locator(".photo-tile")).toHaveCount(3);
   await expect.poll(() => page.locator(".photo-tile img").evaluateAll(
@@ -408,7 +410,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   await page.reload();
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await expect(page.locator(".admin-toolbar").getByRole("button", { name: "Sign out" })).toBeVisible();
+    await expect(page.locator(".admin-header").getByRole("button", { name: "Sign out" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `test-results/admin-signout-${width}.png` });
   }

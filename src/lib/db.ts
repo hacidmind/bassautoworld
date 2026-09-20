@@ -1,40 +1,24 @@
 import mongoose from "mongoose";
-import { lookup } from "node:dns/promises";
-
-export async function canReachMongo(uri?: string): Promise<boolean> {
-  if (!uri) return false;
-  try {
-    const parsed = new URL(uri);
-    const hostname = parsed.hostname;
-    if (!hostname) return false;
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "::1"
-    )
-      return true;
-    await lookup(hostname, { verbatim: true });
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { configureMongoDns } from "./mongo-dns";
 
 let connection: Promise<typeof mongoose> | undefined;
 export async function db() {
   if (!process.env.MONGODB_URI)
     throw new Error("Database is not configured. Please try again later.");
 
-  if (!(await canReachMongo(process.env.MONGODB_URI))) {
-    throw new Error(
-      "MongoDB host is not reachable from this environment. Check MONGODB_URI and network access.",
-    );
-  }
-
+  // Let the driver resolve SRV records and replica-set hosts. An address
+  // lookup of an SRV seed hostname can fail even when the cluster is healthy.
+  if (!connection) configureMongoDns();
   connection ??= mongoose
     .connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
     .catch((e) => {
-      console.error("MongoDB connection failed:", e);
+      console.error("MongoDB connection failed:", {
+        name: e instanceof Error ? e.name : "UnknownError",
+        code:
+          typeof e?.code === "number" || typeof e?.code === "string"
+            ? e.code
+            : undefined,
+      });
       connection = undefined;
       throw e;
     });
