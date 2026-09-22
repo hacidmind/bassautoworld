@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 120000,
   expect: { timeout: 15000 },
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: `http://127.0.0.1:${process.env.QA_PORT || "3001"}`,
     headless: true,
     launchOptions: {
       executablePath:

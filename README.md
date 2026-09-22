@@ -67,6 +67,8 @@ npx playwright test
 
 QA uses a disposable local MongoDB replica set on port 27028 and Next.js on port 3001. It never uses `MONGODB_URI` from your environment. Test-only credentials are embedded in the QA fixture, never created in the application database. The first run downloads a MongoDB test binary. `QA_BROWSER_PATH` can override the default Windows Chrome executable for another operating system. Stop the QA server when finished. Browser tests create synthetic records only in this disposable database. The publication test uses a Cloudinary sample fixture; it does **not** verify real image uploads.
 
+If port 3001 is occupied, set `QA_PORT` to an available port in both terminals (for example, `$env:QA_PORT='3107'` in PowerShell). The QA server and browser tests both use `127.0.0.1` to avoid connecting to another app listening on IPv6 localhost.
+
 ## Vercel deployment
 
 1. Import this repository into a Vercel project using the Next.js framework preset. Use Node.js 24 and the existing `npm run build` command. Do not use static export.

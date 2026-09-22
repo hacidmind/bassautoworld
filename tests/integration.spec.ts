@@ -1,6 +1,7 @@
 ﻿import { test, expect } from "@playwright/test";
 import mongoose from "mongoose";
 import { readFile } from "node:fs/promises";
+const origin = `http://127.0.0.1:${process.env.QA_PORT || "3001"}`;
 test.beforeAll(async () => {
   const connection = await mongoose
     .createConnection("mongodb://127.0.0.1:27028/bassautoworld_qa")
@@ -171,7 +172,7 @@ test("admin protects routes and persists lead and inspection status", async ({
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/login/);
   const denied = await request.post("/api/admin/vehicles", {
-    headers: { Origin: "http://localhost:3001" },
+    headers: { Origin: origin },
     data: { make: "Intruder" },
   });
   expect(denied.status()).toBe(401);
@@ -181,7 +182,7 @@ test("admin protects routes and persists lead and inspection status", async ({
   const row = page
     .locator("tr")
     .filter({ hasText: buyer })
-    .filter({ hasText: "CONTACT Â· WEBSITE" });
+    .filter({ has: page.locator("p").filter({ hasText: /^CONTACT\b/ }) });
   await row.getByRole("combobox").selectOption("CONTACTED");
   await expect(row.getByRole("combobox")).toBeEnabled();
   await page.reload();
@@ -189,7 +190,7 @@ test("admin protects routes and persists lead and inspection status", async ({
     page
       .locator("tr")
       .filter({ hasText: buyer })
-      .filter({ hasText: "CONTACT Â· WEBSITE" })
+      .filter({ has: page.locator("p").filter({ hasText: /^CONTACT\b/ }) })
       .getByRole("combobox"),
   ).toHaveValue("CONTACTED");
   await page.goto("/admin/inspections");
@@ -389,7 +390,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
   await page.keyboard.press("Escape");
   await expect(page.locator("dialog")).not.toBeVisible();
   await page.request.patch("/api/admin/vehicles", {
-    headers: { Origin: "http://localhost:3001" },
+    headers: { Origin: origin },
     data: { id: vehicleId, status: "SOLD" },
   });
   await page.reload();
@@ -400,7 +401,7 @@ test("admin vehicle create, edit, publication, sold behavior and archive", async
     page.getByRole("link", { name: "Request inspection" }),
   ).toHaveCount(0);
   await page.request.patch("/api/admin/vehicles", {
-    headers: { Origin: "http://localhost:3001" },
+    headers: { Origin: origin },
     data: { id: vehicleId, archived: true },
   });
   const response = await page.goto("/cars/" + created.slug);

@@ -20,7 +20,11 @@ export async function rateLimit(key: string, max = 8) {
 }
 export function sameOrigin(req: Request) {
   const origin = req.headers.get("origin");
-  if (!origin || origin !== new URL(req.url).origin)
+  const url = new URL(req.url);
+  // Next.js may use localhost for its internal URL even when the browser
+  // connects through another hostname. Compare against the request Host.
+  const expected = `${url.protocol}//${req.headers.get("host") || url.host}`;
+  if (!origin || origin !== expected)
     throw new Error("Invalid request origin");
 }
 export async function body(req: Request) {
